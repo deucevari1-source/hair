@@ -1,0 +1,119 @@
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    @apply bg-white text-charcoal-900 font-body;
+    overscroll-behavior-y: none;
+  }
+
+  ::selection {
+    background: #141414;
+    color: #ffffff;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center px-8 py-3.5
+           bg-charcoal-900 text-white
+           font-body font-medium text-xs tracking-[0.15em] uppercase
+           border border-charcoal-900
+           transition-colors duration-200
+           hover:bg-charcoal-700 active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center px-8 py-3.5
+           border border-charcoal-900 text-charcoal-900 bg-transparent
+           font-body font-medium text-xs tracking-[0.15em] uppercase
+           transition-colors duration-200
+           hover:bg-charcoal-900 hover:text-white active:scale-[0.98];
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center px-8 py-3.5
+           border border-white text-white bg-transparent
+           font-body font-medium text-xs tracking-[0.15em] uppercase
+           transition-colors duration-200
+           hover:bg-white hover:text-charcoal-900 active:scale-[0.98];
+  }
+
+  .section-padding {
+    @apply px-5 md:px-8 lg:px-16;
+  }
+
+  .heading-xl {
+    @apply font-display font-semibold text-5xl md:text-7xl lg:text-8xl
+           leading-[0.92] tracking-tight;
+  }
+
+  .heading-lg {
+    @apply font-display font-semibold text-3xl md:text-5xl
+           leading-[1.0] tracking-tight;
+  }
+
+  .heading-md {
+    @apply font-display font-semibold text-2xl md:text-3xl
+           leading-tight tracking-tight;
+  }
+
+  .body-text {
+    @apply font-body text-base text-charcoal-600 leading-relaxed;
+  }
+
+  .card-luxury {
+    @apply bg-white border border-cream-200
+           transition-colors duration-200
+           hover:border-charcoal-400;
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3.5 bg-white border border-cream-300
+           font-body text-sm text-charcoal-900 placeholder:text-charcoal-400
+           focus:outline-none focus:border-charcoal-900
+           transition-colors duration-200;
+  }
+
+  .divider-gold {
+    @apply w-12 h-px bg-charcoal-900;
+  }
+
+  /* Geometric grid background pattern */
+  .bg-grid {
+    background-image:
+      linear-gradient(#E4E4E4 1px, transparent 1px),
+      linear-gradient(90deg, #E4E4E4 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+
+  .bg-grid-dark {
+    background-image:
+      linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px);
+    background-size: 48px 48px;
+  }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #CCCCCC; }
+::-webkit-scrollbar-thumb:hover { background: #AAAAAA; }
+
+.pb-nav {
+  padding-bottom: calc(4.5rem + env(safe-area-inset-bottom, 0px));
+}

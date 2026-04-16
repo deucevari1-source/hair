@@ -1,0 +1,208 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Admin {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  password   String
+  name       String
+  telegramId BigInt?  @unique
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Master {
+  id           String           @id @default(cuid())
+  name         String
+  role         String
+  bio          String?
+  photoUrl     String?
+  phone        String?
+  isActive     Boolean          @default(true)
+  sortOrder    Int              @default(0)
+  telegramId   BigInt?          @unique
+  createdAt    DateTime         @default(now())
+  updatedAt    DateTime         @updatedAt
+  appointments Appointment[]
+  services     MasterService[]
+  schedules    MasterSchedule[]
+  blockedSlots BlockedSlot[]
+}
+
+model MasterSchedule {
+  id        String @id @default(cuid())
+  masterId  String
+  master    Master @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  date      String // "YYYY-MM-DD"
+  startTime String @default("09:00")
+  endTime   String @default("19:00")
+
+  @@unique([masterId, date])
+}
+
+model ServiceCategory {
+  id        String    @id @default(cuid())
+  name      String
+  sortOrder Int       @default(0)
+  services  Service[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
+
+model Service {
+  id           String          @id @default(cuid())
+  name         String
+  description  String?
+  priceFrom    Int             // price in smallest currency unit
+  priceTo      Int?            // optional range
+  durationMin  Int             // duration in minutes
+  categoryId   String
+  category     ServiceCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  isActive     Boolean         @default(true)
+  sortOrder    Int             @default(0)
+  createdAt    DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+  appointments Appointment[]
+  masters      MasterService[]
+}
+
+model MasterService {
+  id        String  @id @default(cuid())
+  masterId  String
+  master    Master  @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  serviceId String
+  service   Service @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  priceFrom Int?    // индивидуальная цена мастера (в копейках), если отличается от базовой
+  priceTo   Int?    // верхняя граница диапазона цены мастера
+
+  @@unique([masterId, serviceId])
+}
+
+model Client {
+  id           String        @id @default(cuid())
+  name         String
+  phone        String        @unique
+  email        String?
+  notes        String?       // master/admin notes about client
+  preferences  String?       // hair preferences, allergies, etc.
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  appointments Appointment[]
+}
+
+model Appointment {
+  id          String            @id @default(cuid())
+  clientName  String
+  clientPhone String
+  clientEmail String?
+  date        DateTime
+  time        String            // "14:00"
+  comment     String?
+  status      AppointmentStatus @default(PENDING)
+  masterId    String?
+  master      Master?           @relation(fields: [masterId], references: [id], onDelete: SetNull)
+  serviceId   String?
+  service     Service?          @relation(fields: [serviceId], references: [id], onDelete: SetNull)
+  clientId    String?
+  client      Client?           @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  payment           Payment?
+  telegramNotified  Boolean           @default(false)
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+}
+
+enum AppointmentStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum PaymentMethod {
+  CASH
+  CARD
+  ONLINE
+}
+
+model Payment {
+  id            String        @id @default(cuid())
+  appointmentId String        @unique
+  appointment   Appointment   @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  amount        Int           // in kopecks / cents
+  method        PaymentMethod @default(CASH)
+  note          String?
+  paidAt        DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+}
+
+model BlockedSlot {
+  id        String   @id @default(cuid())
+  masterId  String
+  master    Master   @relation(fields: [masterId], references: [id], onDelete: Cascade)
+  date      String   // "YYYY-MM-DD"
+  time      String   // "HH:MM"
+  comment   String?
+  createdAt DateTime @default(now())
+
+  @@unique([masterId, date, time])
+}
+
+model Product {
+  id          String  @id @default(cuid())
+  name        String
+  description String?
+  brand       String?
+  price       Int     // display price
+  imageUrl    String?
+  isActive    Boolean @default(true)
+  sortOrder   Int     @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  instructor  String?
+  price       Int?
+  durationDays Int?    // course duration
+  startDate   DateTime?
+  endDate     DateTime?
+  maxStudents Int?
+  imageUrl    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  enrollments CourseEnrollment[]
+}
+
+model CourseEnrollment {
+  id        String   @id @default(cuid())
+  name      String
+  phone     String
+  email     String?
+  courseId   String
+  course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+}
+
+model SalonSettings {
+  id              String @id @default("settings")
+  salonName       String @default("Hair Atelier")
+  phone           String @default("")
+  email           String @default("")
+  address         String @default("")
+  workingHours    String @default("Пн-Пт: 9:00-21:00, Сб-Вс: 10:00-20:00")
+  telegramToken   String @default("")
+  telegramChatId  String @default("")
+  instagramUrl    String @default("")
+  aboutText       String @default("")
+  updatedAt       DateTime @updatedAt
+}

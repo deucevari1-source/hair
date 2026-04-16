@@ -1,0 +1,30 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm audit:*)",
+      "Bash(npm show:*)",
+      "Bash(node -e \"const v=JSON.parse\\(require\\('fs'\\).readFileSync\\('/dev/stdin','utf8'\\)\\); console.log\\(v.filter\\(x=>x.startsWith\\('14.'\\)||x.startsWith\\('15.'\\)\\).slice\\(-10\\).join\\('\\\\n'\\)\\)\")",
+      "Bash(node -e \"const p=require\\('./package.json'\\); console.log\\('current next:', p.dependencies.next\\)\")",
+      "Bash(npm install:*)",
+      "Bash(npm run:*)",
+      "Bash(npx prisma:*)",
+      "Bash(mkdir -p \"c:/projects/hair-atelier/src/app/api/admin/masters/[id]/schedule\")",
+      "Bash(mkdir -p \"c:/projects/hair-atelier/src/app/api/masters/[id]/schedule\")",
+      "Bash(node -e 'const {PrismaClient} = require\\('\\\\''@prisma/client'\\\\''\\); const p = new PrismaClient\\(\\); p.masterSchedule.findMany\\(\\).then\\(r => console.log\\('\\\\''OK:'\\\\'', r\\)\\).catch\\(e => console.error\\('\\\\''ERR:'\\\\'', e.message\\)\\).finally\\(\\(\\) => p.$disconnect\\(\\)\\)')",
+      "Bash(node -e ':*)",
+      "Bash(grep -n \"params\\\\\\)\" c:/projects/hair-atelier/src/app/api/admin/masters/[id]/schedule/route.js)",
+      "Bash(node prisma/seed.js)",
+      "Bash(dir c:\\\\projects\\\\hair-atelier /b /s)",
+      "Bash(findstr /v \"node_modules\")",
+      "Bash(findstr /v \".next\")",
+      "Bash(findstr \".tsx .ts\")",
+      "Bash(node prisma/add-appointments.js)",
+      "Bash(node prisma/fix-prices.js)",
+      "Bash(ls c:/projects/hair-atelier/tg_bot_hair/.env*)",
+      "Bash(ssh root@localhost \"cat /home/gitlab-runner/ghuauld-project/docker-compose.yml\")"
+    ],
+    "additionalDirectories": [
+      "c:\\projects\\hair-atelier\\src\\app\\api\\admin\\blocked-slots"
+    ]
+  }
+}
