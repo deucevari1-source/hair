@@ -1,6 +1,6 @@
 import type { Context } from 'grammy';
 import { prisma } from '../db';
-import { createInviteToken } from '../state';
+import { createInviteToken, setState } from '../state';
 import { buildAdminMenuText, buildMasterMenuText } from '../stats';
 import {
   appointmentActionKeyboard,
@@ -126,7 +126,6 @@ async function onMenuMaster(ctx: Context) {
 
 async function onRegAdmin(ctx: Context) {
   await ctx.answerCallbackQuery();
-  const { setState } = await import('../state');
   setState(ctx.chat!.id, { step: 'awaiting_admin_secret' });
   await ctx.reply('Введите секретный код администратора:');
 }
