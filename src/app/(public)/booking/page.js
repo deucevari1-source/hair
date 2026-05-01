@@ -44,6 +44,20 @@ function BookingPage() {
   }, []);
 
   useEffect(() => {
+    fetch('/api/client/me')
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.client) return;
+        setForm((f) => ({
+          ...f,
+          clientName: f.clientName || data.client.name || '',
+          clientPhone: f.clientPhone === '+375' && data.client.phone ? data.client.phone : f.clientPhone,
+        }));
+      })
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
     if (!form.masterId) { setMasterSchedule([]); return; }
     fetch(`/api/masters/${form.masterId}/schedule`)
       .then((r) => r.json())
@@ -185,13 +199,18 @@ function BookingPage() {
             Мы получили вашу заявку и скоро свяжемся для подтверждения.
             Спасибо, что выбрали Hair Atelier!
           </p>
-          <button onClick={() => {
-            setSuccess(false);
-            setForm({ clientName: '', clientPhone: '+375', date: '', time: '', serviceId: '', masterId: '', comment: '' });
-            setPanel(0);
-          }} className="btn-outline">
-            Записаться ещё
-          </button>
+          <div className="flex flex-col gap-3">
+            <button onClick={() => {
+              setSuccess(false);
+              setForm({ clientName: '', clientPhone: '+375', date: '', time: '', serviceId: '', masterId: '', comment: '' });
+              setPanel(0);
+            }} className="btn-outline">
+              Записаться ещё
+            </button>
+            <a href="/" className="btn-primary">
+              Мой Hair Atelier
+            </a>
+          </div>
         </div>
       </div>
     );

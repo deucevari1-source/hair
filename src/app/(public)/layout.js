@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect } from 'react';
 import { Home, Scissors, CalendarPlus, ShoppingBag, GraduationCap, Phone, MapPin, Clock, Instagram } from 'lucide-react';
+import UserMenu from './_components/user-menu';
 
 const navItems = [
   { href: '/',         label: 'Главная', icon: Home },
@@ -41,6 +42,9 @@ function DesktopHeader() {
             className="ml-6 px-6 py-2.5 bg-charcoal-900 text-white font-body text-xs tracking-[0.12em] uppercase font-medium hover:bg-charcoal-700 transition-colors">
             Записаться
           </Link>
+          <div className="ml-3">
+            <UserMenu variant="desktop" />
+          </div>
         </nav>
       </div>
     </header>
@@ -57,10 +61,13 @@ function MobileHeader() {
             Hair Atelier
           </span>
         </Link>
-        <a href="tel:+375291234567"
-          className="w-9 h-9 border border-cream-200 flex items-center justify-center hover:border-charcoal-900 transition-colors">
-          <Phone size={16} strokeWidth={1.5} className="text-charcoal-700" />
-        </a>
+        <div className="flex items-center gap-2">
+          <UserMenu variant="mobile" />
+          <a href="tel:+375291234567"
+            className="w-9 h-9 border border-cream-200 flex items-center justify-center hover:border-charcoal-900 transition-colors">
+            <Phone size={16} strokeWidth={1.5} className="text-charcoal-700" />
+          </a>
+        </div>
       </div>
     </header>
   );

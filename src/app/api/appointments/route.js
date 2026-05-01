@@ -1,17 +1,25 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
 import { sendTelegramNotification, formatAppointmentNotification } from '@/lib/telegram';
-import { requireAuth } from '@/lib/auth';
+import {
+  requireAuth,
+  signClientToken,
+  clientCookieOptions,
+  normalizeName,
+  CLIENT_COOKIE_NAME,
+} from '@/lib/auth';
 
 // POST - create appointment (public)
 export async function POST(request) {
   try {
     const body = await request.json();
-    const { clientName, clientPhone, clientEmail, date, time, serviceId, masterId, comment } = body;
+    let { clientName, clientPhone, clientEmail, date, time, serviceId, masterId, comment } = body;
 
     if (!clientName || !clientPhone || !date || !time) {
       return NextResponse.json({ error: 'Заполните обязательные поля' }, { status: 400 });
     }
+
+    clientName = normalizeName(clientName);
 
     // Check slot availability if master + service specified
     if (masterId && serviceId) {
@@ -88,7 +96,13 @@ export async function POST(request) {
       console.error('Telegram notification failed:', e);
     }
 
-    return NextResponse.json({ appointment }, { status: 201 });
+    const response = NextResponse.json({ appointment }, { status: 201 });
+    response.cookies.set(
+      CLIENT_COOKIE_NAME,
+      signClientToken({ clientId: client.id, name: client.name, phone: client.phone }),
+      clientCookieOptions()
+    );
+    return response;
   } catch (error) {
     console.error('POST /api/appointments error:', error);
     return NextResponse.json({ error: 'Internal error' }, { status: 500 });
