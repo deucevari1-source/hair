@@ -17,6 +17,15 @@ function getJwtSecret() {
 
 export const CLIENT_COOKIE_NAME = 'client_token';
 export const CLIENT_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
+export const ADMIN_COOKIE_NAME = 'admin_token';
+export const ADMIN_COOKIE_MAX_AGE = 60 * 60 * 24 * 7;
+
+// Set secure cookies only when actually serving HTTPS.
+// On test HTTP deployments, set INSECURE_COOKIES=1 in env to allow cookies over plain HTTP.
+function shouldUseSecureCookies() {
+  if (process.env.INSECURE_COOKIES === '1') return false;
+  return process.env.NODE_ENV === 'production';
+}
 
 export function signToken(payload) {
   return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
@@ -46,8 +55,28 @@ export function clientCookieOptions() {
   return {
     httpOnly: true,
     sameSite: 'lax',
-    secure: process.env.NODE_ENV === 'production',
+    secure: shouldUseSecureCookies(),
     maxAge: CLIENT_COOKIE_MAX_AGE,
+    path: '/',
+  };
+}
+
+export function adminCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: shouldUseSecureCookies(),
+    maxAge: ADMIN_COOKIE_MAX_AGE,
+    path: '/',
+  };
+}
+
+export function clearCookieOptions() {
+  return {
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: shouldUseSecureCookies(),
+    maxAge: 0,
     path: '/',
   };
 }

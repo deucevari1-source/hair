@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
-import { comparePassword, signToken } from '@/lib/auth';
+import { comparePassword, signToken, ADMIN_COOKIE_NAME, adminCookieOptions } from '@/lib/auth';
 
 export async function POST(request) {
   try {
@@ -26,13 +26,7 @@ export async function POST(request) {
       admin: { id: admin.id, name: admin.name, email: admin.email },
     });
 
-    response.cookies.set('admin_token', token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      maxAge: 60 * 60 * 24 * 7, // 7 days
-      path: '/',
-    });
+    response.cookies.set(ADMIN_COOKIE_NAME, token, adminCookieOptions());
 
     return response;
   } catch (error) {

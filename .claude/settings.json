@@ -33,7 +33,9 @@
       "Read(//c/Users/deuce/.claude/projects/c--projects-hair-atelier/**)",
       "Bash(node -e \"const p = require\\('petrovich'\\); console.log\\(JSON.stringify\\(p\\({first:'Кирилл',last:'Круглов',gender:'male'},'dative'\\)\\)\\); console.log\\(JSON.stringify\\(p\\({first:'Анна',last:'Иванова',gender:'female'},'dative'\\)\\)\\); console.log\\(JSON.stringify\\(p\\({first:'Анна'},'dative'\\)\\)\\); console.log\\('detectGender:', typeof p.detect_gender, typeof p.detectGender, Object.keys\\(p\\)\\);\")",
       "Bash(node -e \"const {declineToDative} = require\\('./src/lib/prompts.js'\\); ['Кирилл Круглов','Анна Иванова','Дмитрий','Ольга','Илья Петров','Никита','Сергей Михайлович Иванов','Ирина Ковалевская','Константин','назгуль темирбаева'].forEach\\(n => console.log\\(n, '→', declineToDative\\(n\\)\\)\\);\")",
-      "Bash(git check-ignore *)"
+      "Bash(git check-ignore *)",
+      "Bash(git push *)",
+      "Bash(ssh -o ConnectTimeout=5 -o BatchMode=yes -o StrictHostKeyChecking=accept-new root@77.42.39.97 \"echo ok && hostname && pwd\")"
     ],
     "additionalDirectories": [
       "c:\\projects\\hair-atelier\\src\\app\\api\\admin\\blocked-slots"
