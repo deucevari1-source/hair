@@ -4,6 +4,7 @@ import DesktopHeader from './_components/desktop-header';
 import MobileHeader from './_components/mobile-header';
 import MobileBottomNav from './_components/mobile-bottom-nav';
 import ScrollRestorer from './_components/scroll-restorer';
+import PullToRefresh from './_components/pull-to-refresh';
 
 const footerNav = [
   { href: '/',         label: 'Главная' },
@@ -84,6 +85,7 @@ export default function PublicLayout({ children }) {
       <DesktopHeader />
       <MobileHeader />
       <ScrollRestorer />
+      <PullToRefresh />
       <main className="pt-14 md:pt-16 pb-nav md:pb-0">
         {children}
       </main>
