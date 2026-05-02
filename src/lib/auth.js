@@ -1,33 +1,42 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET;
-if (!JWT_SECRET || JWT_SECRET.length < 32) {
-  throw new Error('JWT_SECRET env var is required and must be at least 32 chars long');
+// Lazy secret check — runs at first sign/verify, NOT at module load.
+// This is important for `next build` which evaluates module top-level
+// without runtime env vars being present (Docker compose envs are runtime-only).
+let _cachedSecret = null;
+function getJwtSecret() {
+  if (_cachedSecret) return _cachedSecret;
+  const s = process.env.JWT_SECRET;
+  if (!s || s.length < 32) {
+    throw new Error('JWT_SECRET env var is required and must be at least 32 chars long');
+  }
+  _cachedSecret = s;
+  return s;
 }
 
 export const CLIENT_COOKIE_NAME = 'client_token';
 export const CLIENT_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;
 
 export function signToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '7d' });
 }
 
 export function verifyToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getJwtSecret());
   } catch {
     return null;
   }
 }
 
 export function signClientToken(payload) {
-  return jwt.sign(payload, JWT_SECRET, { expiresIn: '365d' });
+  return jwt.sign(payload, getJwtSecret(), { expiresIn: '365d' });
 }
 
 export function verifyClientToken(token) {
   try {
-    return jwt.verify(token, JWT_SECRET);
+    return jwt.verify(token, getJwtSecret());
   } catch {
     return null;
   }
