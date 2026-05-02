@@ -5,25 +5,30 @@ import { useRouter } from 'next/navigation';
 import { RotateCw } from 'lucide-react';
 
 const TRIGGER_PX = 80;       // pull distance to fire refresh
-const MAX_PULL_PX = 120;     // visual cap on pull distance
-const DAMPING = 0.5;         // 1 = follows finger 1:1, lower = stiffer
+const MAX_PULL_PX = 140;     // visual cap
+const DAMPING = 0.5;         // 1 = follows finger, lower = stiffer
+const HOLD_PX = 56;          // content offset held during refresh
 
-export default function PullToRefresh() {
+export default function PullToRefresh({ children }) {
   const router = useRouter();
   const startY = useRef(null);
   const pullRef = useRef(0);
+  const refreshingRef = useRef(false);
   const [pull, setPullState] = useState(0);
-  const [refreshing, setRefreshing] = useState(false);
+  const [refreshing, setRefreshingState] = useState(false);
 
   const setPull = (v) => {
     pullRef.current = v;
     setPullState(v);
   };
+  const setRefreshing = (v) => {
+    refreshingRef.current = v;
+    setRefreshingState(v);
+  };
 
   useEffect(() => {
     const onTouchStart = (e) => {
-      // Only engage when at very top of page
-      if (window.scrollY > 0) return;
+      if (window.scrollY > 0 || refreshingRef.current) return;
       startY.current = e.touches[0].clientY;
     };
 
@@ -34,7 +39,6 @@ export default function PullToRefresh() {
         setPull(0);
         return;
       }
-      // Block native scroll only while we're showing the pull
       if (window.scrollY <= 0) {
         e.preventDefault();
         const damped = Math.min(MAX_PULL_PX, dy * DAMPING);
@@ -46,11 +50,11 @@ export default function PullToRefresh() {
       if (startY.current == null) return;
       startY.current = null;
       const final = pullRef.current;
-      if (final >= TRIGGER_PX && !refreshing) {
+      if (final >= TRIGGER_PX && !refreshingRef.current) {
         setRefreshing(true);
-        setPull(60); // snap-back to spinner position
+        setPull(HOLD_PX);
         router.refresh();
-        // RSC refresh has no completion callback — give it a beat for visual feedback
+        // RSC refresh has no completion callback; cushion for user feedback
         setTimeout(() => {
           setRefreshing(false);
           setPull(0);
@@ -70,23 +74,25 @@ export default function PullToRefresh() {
       document.removeEventListener('touchend', onTouchEnd);
       document.removeEventListener('touchcancel', onTouchEnd);
     };
-  }, [router, refreshing]);
+  }, [router]);
 
   const visible = pull > 0 || refreshing;
   const progress = Math.min(1, pull / TRIGGER_PX);
 
   return (
     <>
+      {/* Spinner sits below the header, behind the content. Revealed as the
+          content (children) translates down with the finger. */}
       <div
         aria-hidden
-        className="fixed top-0 left-0 right-0 z-[60] flex justify-center pointer-events-none"
+        className="fixed left-0 right-0 z-30 flex justify-center pointer-events-none"
         style={{
-          transform: `translateY(${Math.max(0, pull - 30)}px)`,
-          opacity: visible ? Math.max(0.3, progress) : 0,
-          transition: pull === 0 && !refreshing ? 'opacity 200ms, transform 200ms' : 'none',
+          top: 'calc(3.5rem + env(safe-area-inset-top, 0px))', // below mobile header (h-14)
+          opacity: visible ? Math.max(0.4, progress) : 0,
+          transition: pull === 0 && !refreshing ? 'opacity 200ms' : 'none',
         }}
       >
-        <div className="mt-3 w-9 h-9 border border-cream-200 bg-white rounded-full flex items-center justify-center shadow-sm">
+        <div className="mt-2 w-9 h-9 border border-cream-200 bg-white rounded-full flex items-center justify-center shadow-sm">
           <RotateCw
             size={15}
             strokeWidth={1.8}
@@ -94,6 +100,17 @@ export default function PullToRefresh() {
             style={!refreshing ? { transform: `rotate(${progress * 270}deg)`, transition: 'transform 80ms linear' } : undefined}
           />
         </div>
+      </div>
+
+      {/* The actual content — translates down with the pull. */}
+      <div
+        style={{
+          transform: `translateY(${pull}px)`,
+          transition: pull === 0 && !refreshing ? 'transform 250ms cubic-bezier(0.2, 0.7, 0.2, 1)' : 'none',
+          willChange: 'transform',
+        }}
+      >
+        {children}
       </div>
     </>
   );

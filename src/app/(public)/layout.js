@@ -85,10 +85,11 @@ export default function PublicLayout({ children }) {
       <DesktopHeader />
       <MobileHeader />
       <ScrollRestorer />
-      <PullToRefresh />
-      <main className="pt-14 md:pt-16 pb-nav md:pb-0">
-        {children}
-      </main>
+      <PullToRefresh>
+        <main className="pt-14 md:pt-16 pb-nav md:pb-0">
+          {children}
+        </main>
+      </PullToRefresh>
       <div className="hidden md:block">
         <Footer />
       </div>
