@@ -6,6 +6,9 @@ export const metadata = {
   description: 'Профессиональная косметика для волос — те же средства, которые используют наши мастера в работе.',
 };
 
+// Render on each request — DB isn't reachable at build time inside Docker.
+export const dynamic = 'force-dynamic';
+
 export default async function ShopPage() {
   let products = [];
   try {

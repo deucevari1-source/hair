@@ -7,6 +7,9 @@ export const metadata = {
   description: 'Стрижки, окрашивание, уход — полный каталог услуг салона Hair Atelier с актуальными ценами и длительностью.',
 };
 
+// Render on each request — DB isn't reachable at build time inside Docker.
+export const dynamic = 'force-dynamic';
+
 function formatPrice(from) {
   return `${(from / 100).toLocaleString('ru-RU')} BYN`;
 }

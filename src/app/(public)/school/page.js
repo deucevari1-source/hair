@@ -7,6 +7,9 @@ export const metadata = {
   description: 'Обучение от практикующих мастеров салона. Делимся техниками и секретами, которые используем каждый день.',
 };
 
+// Render on each request — DB isn't reachable at build time inside Docker.
+export const dynamic = 'force-dynamic';
+
 export default async function SchoolPage() {
   let courses = [];
   try {
