@@ -1,7 +1,9 @@
 import { cookies } from 'next/headers';
 import Link from 'next/link';
 import { ArrowRight, ArrowUpRight } from 'lucide-react';
+import prisma from '@/lib/prisma';
 import { CLIENT_COOKIE_NAME, verifyClientToken } from '@/lib/auth';
+import { getClientPrompts } from '@/lib/prompts';
 import HeroSection from './_components/hero';
 import MastersSection from './_components/masters';
 
@@ -102,9 +104,52 @@ export default async function HomePage() {
   const client = token ? verifyClientToken(token) : null;
   const safeClient = client ? { name: client.name, phone: client.phone } : null;
 
+  let initialPrompts = [];
+  let nextAppointment = null;
+  if (client?.clientId) {
+    try {
+      initialPrompts = await getClientPrompts(prisma, client.clientId);
+    } catch (e) {
+      console.error('getClientPrompts failed:', e);
+    }
+    try {
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+      const appt = await prisma.appointment.findFirst({
+        where: {
+          clientId: client.clientId,
+          status: { in: ['PENDING', 'CONFIRMED'] },
+          date: { gte: todayStart },
+        },
+        orderBy: [{ date: 'asc' }, { time: 'asc' }],
+        include: {
+          master: { select: { name: true, role: true } },
+          service: { select: { name: true, durationMin: true } },
+        },
+      });
+      if (appt) {
+        nextAppointment = {
+          id: appt.id,
+          date: appt.date.toISOString(),
+          time: appt.time,
+          status: appt.status,
+          masterName: appt.master?.name || null,
+          serviceName: appt.service?.name || null,
+          durationMin: appt.service?.durationMin || null,
+        };
+      }
+    } catch (e) {
+      console.error('next appointment lookup failed:', e);
+    }
+  }
+
   return (
     <>
-      <HeroSection client={safeClient} />
+      <HeroSection
+        client={safeClient}
+        initialPrompts={initialPrompts}
+        nextAppointment={nextAppointment}
+      />
       <ServicesPreview />
       <MastersSection />
       <BookingCTA />

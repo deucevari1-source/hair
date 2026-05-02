@@ -45,6 +45,17 @@ ${appointment.comment ? `💬 <b>Комментарий:</b> ${appointment.comme
   `.trim();
 }
 
+export function formatPromptResponseNotification(prompt, client) {
+  return `
+💬 <b>Ответ клиента</b>
+
+👤 <b>Клиент:</b> ${client.name}
+📞 <b>Телефон:</b> ${client.phone}
+❓ <b>Вопрос:</b> ${prompt.question}
+✅ <b>Ответ:</b> ${prompt.response}
+  `.trim();
+}
+
 export function formatEnrollmentNotification(enrollment, course) {
   return `
 🎓 <b>Запись на курс!</b>

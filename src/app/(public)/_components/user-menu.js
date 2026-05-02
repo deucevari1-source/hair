@@ -61,12 +61,9 @@ export default function UserMenu({ variant = 'desktop' }) {
       {confirmOpen && (
         <div
           className="fixed inset-0 z-[100] bg-charcoal-900/40 flex items-center justify-center px-5"
-          onClick={() => !loading && setConfirmOpen(false)}
+          onMouseDown={(e) => { if (!loading && e.target === e.currentTarget) setConfirmOpen(false); }}
         >
-          <div
-            className="bg-white border border-cream-200 max-w-sm w-full p-6 md:p-8 relative"
-            onClick={(e) => e.stopPropagation()}
-          >
+          <div className="bg-white border border-cream-200 max-w-sm w-full p-6 md:p-8 relative">
             <button
               onClick={() => !loading && setConfirmOpen(false)}
               className="absolute top-3 right-3 text-charcoal-400 hover:text-charcoal-900 transition-colors"

@@ -21,72 +21,105 @@ export async function POST(request) {
 
     clientName = normalizeName(clientName);
 
-    // Check slot availability if master + service specified
-    if (masterId && serviceId) {
-      const service = await prisma.service.findUnique({ where: { id: serviceId }, select: { durationMin: true } });
-      const duration = service?.durationMin ?? 60;
+    // Validate referenced master/service exist & active. Block booking on inactive ones.
+    if (masterId) {
+      const m = await prisma.master.findUnique({ where: { id: masterId }, select: { isActive: true } });
+      if (!m || !m.isActive) {
+        return NextResponse.json({ error: 'Мастер недоступен' }, { status: 400 });
+      }
+    }
+    if (serviceId) {
+      const s = await prisma.service.findUnique({ where: { id: serviceId }, select: { isActive: true } });
+      if (!s || !s.isActive) {
+        return NextResponse.json({ error: 'Услуга недоступна' }, { status: 400 });
+      }
+    }
 
-      const [hNew, mNew] = time.split(':').map(Number);
-      const newStart = hNew * 60 + mNew;
-      const newEnd   = newStart + duration;
+    // Slot conflict check + create — single serializable transaction so two
+    // concurrent bookings can't both pass the conflict check.
+    let appointment, client;
+    try {
+      const result = await prisma.$transaction(async (tx) => {
+        if (masterId && serviceId) {
+          const service = await tx.service.findUnique({
+            where: { id: serviceId },
+            select: { durationMin: true },
+          });
+          const duration = service?.durationMin ?? 60;
 
-      const dateStart = new Date(date + 'T00:00:00.000Z');
-      dateStart.setUTCDate(dateStart.getUTCDate() - 1);
-      const dateEnd = new Date(date + 'T23:59:59.999Z');
-      dateEnd.setUTCDate(dateEnd.getUTCDate() + 1);
+          const [hNew, mNew] = time.split(':').map(Number);
+          const newStart = hNew * 60 + mNew;
+          const newEnd   = newStart + duration;
 
-      const existing = await prisma.appointment.findMany({
-        where: {
-          masterId,
-          date: { gte: dateStart, lte: dateEnd },
-          status: { not: 'CANCELLED' },
-        },
-        include: { service: { select: { durationMin: true } } },
-      });
+          const dateStart = new Date(date + 'T00:00:00.000Z');
+          dateStart.setUTCDate(dateStart.getUTCDate() - 1);
+          const dateEnd = new Date(date + 'T23:59:59.999Z');
+          dateEnd.setUTCDate(dateEnd.getUTCDate() + 1);
 
-      const dateStr = new Date(date).toISOString().slice(0, 10);
-      const conflict = existing.some((a) => {
-        const d = new Date(a.date);
-        const utc = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-        if (utc !== dateStr) return false;
-        const [hEx, mEx] = a.time.split(':').map(Number);
-        const exStart = hEx * 60 + mEx;
-        const exEnd   = exStart + (a.service?.durationMin ?? 60);
-        return newStart < exEnd && newEnd > exStart;
-      });
+          const existing = await tx.appointment.findMany({
+            where: {
+              masterId,
+              date: { gte: dateStart, lte: dateEnd },
+              status: { not: 'CANCELLED' },
+            },
+            include: { service: { select: { durationMin: true } } },
+          });
 
-      if (conflict) {
+          const dateStr = date;
+          const conflict = existing.some((a) => {
+            const d = new Date(a.date);
+            const utc = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+            if (utc !== dateStr) return false;
+            const [hEx, mEx] = a.time.split(':').map(Number);
+            const exStart = hEx * 60 + mEx;
+            const exEnd   = exStart + (a.service?.durationMin ?? 60);
+            return newStart < exEnd && newEnd > exStart;
+          });
+
+          if (conflict) {
+            const err = new Error('SLOT_TAKEN');
+            err.code = 'SLOT_TAKEN';
+            throw err;
+          }
+        }
+
+        const upsertedClient = await tx.client.upsert({
+          where: { phone: clientPhone },
+          update: { name: clientName, ...(clientEmail ? { email: clientEmail } : {}) },
+          create: { name: clientName, phone: clientPhone, email: clientEmail || null },
+        });
+
+        const created = await tx.appointment.create({
+          data: {
+            clientName,
+            clientPhone,
+            clientEmail: clientEmail || null,
+            date: new Date(date + 'T00:00:00.000Z'),
+            time,
+            comment: comment || null,
+            serviceId: serviceId || null,
+            masterId: masterId || null,
+            clientId: upsertedClient.id,
+          },
+          include: {
+            service: true,
+            master: true,
+          },
+        });
+
+        return { appointment: created, client: upsertedClient };
+      }, { isolationLevel: 'Serializable' });
+      appointment = result.appointment;
+      client = result.client;
+    } catch (e) {
+      if (e.code === 'SLOT_TAKEN') {
         return NextResponse.json(
           { error: 'Это время уже занято. Пожалуйста, выберите другое.', code: 'SLOT_TAKEN' },
           { status: 409 }
         );
       }
+      throw e;
     }
-
-    // Upsert client by phone
-    const client = await prisma.client.upsert({
-      where: { phone: clientPhone },
-      update: { name: clientName, ...(clientEmail ? { email: clientEmail } : {}) },
-      create: { name: clientName, phone: clientPhone, email: clientEmail || null },
-    });
-
-    const appointment = await prisma.appointment.create({
-      data: {
-        clientName,
-        clientPhone,
-        clientEmail: clientEmail || null,
-        date: new Date(date),
-        time,
-        comment: comment || null,
-        serviceId: serviceId || null,
-        masterId: masterId || null,
-        clientId: client.id,
-      },
-      include: {
-        service: true,
-        master: true,
-      },
-    });
 
     // Send Telegram notification
     try {

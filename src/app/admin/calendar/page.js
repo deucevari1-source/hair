@@ -35,7 +35,7 @@ const MONTH_RU  = ['Январь','Февраль','Март','Апрель','М
 const DAY_SHORT = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
 
 /* ── AppointmentModal ─────────────────────────────────────────── */
-function AppointmentModal({ appt, token, onClose, onStatusChange, onPaymentDone }) {
+function AppointmentModal({ appt, onClose, onStatusChange, onPaymentDone }) {
   const meta = STATUS_META[appt.status] || STATUS_META.PENDING;
   const [loading, setLoading] = useState(false);
   const [showPay, setShowPay] = useState(false);
@@ -52,7 +52,7 @@ function AppointmentModal({ appt, token, onClose, onStatusChange, onPaymentDone 
     setLoading(true);
     await fetch(`/api/appointments/${appt.id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status }),
     });
     setLoading(false);
@@ -65,7 +65,7 @@ function AppointmentModal({ appt, token, onClose, onStatusChange, onPaymentDone 
     setPaySaving(true);
     await fetch('/api/admin/payments', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         appointmentId: appt.id,
         amount: Math.round(parseFloat(payForm.amount) * 100),
@@ -78,8 +78,9 @@ function AppointmentModal({ appt, token, onClose, onStatusChange, onPaymentDone 
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white w-full max-w-sm mx-4 border-2 border-charcoal-900" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+         onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white w-full max-w-sm mx-4 border-2 border-charcoal-900">
         <div className={`h-1 w-full ${meta.bar}`} />
         <div className="p-6">
           {!showPay ? (
@@ -222,7 +223,7 @@ function AppointmentModal({ appt, token, onClose, onStatusChange, onPaymentDone 
 }
 
 /* ── BlockModal ───────────────────────────────────────────────── */
-function BlockModal({ data, token, onClose, onDone }) {
+function BlockModal({ data, onClose, onDone }) {
   const [comment, setComment] = useState('');
   const [saving, setSaving] = useState(false);
 
@@ -230,7 +231,7 @@ function BlockModal({ data, token, onClose, onDone }) {
     setSaving(true);
     await fetch('/api/admin/blocked-slots', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ masterId: data.masterId, date: data.date, time: data.time, comment: comment || null }),
     });
     setSaving(false);
@@ -239,8 +240,9 @@ function BlockModal({ data, token, onClose, onDone }) {
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white w-full max-w-sm mx-4 border-2 border-charcoal-900 p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+         onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white w-full max-w-sm mx-4 border-2 border-charcoal-900 p-6">
         <p className="font-semibold text-charcoal-900 mb-1">Закрыть время</p>
         <p className="text-sm text-charcoal-500 mb-4">{data.masterName} · {data.time}</p>
         <textarea value={comment} onChange={(e) => setComment(e.target.value)}
@@ -259,21 +261,21 @@ function BlockModal({ data, token, onClose, onDone }) {
 }
 
 /* ── UnblockModal ─────────────────────────────────────────────── */
-function UnblockModal({ slot, token, onClose, onDone }) {
+function UnblockModal({ slot, onClose, onDone }) {
   const [loading, setLoading] = useState(false);
   async function unblock() {
     setLoading(true);
     await fetch(`/api/admin/blocked-slots/${slot.id}`, {
       method: 'DELETE',
-      headers: { Authorization: `Bearer ${token}` },
     });
     setLoading(false);
     onDone();
     onClose();
   }
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
-      <div className="bg-white w-full max-w-sm mx-4 border-2 border-charcoal-900 p-6" onClick={(e) => e.stopPropagation()}>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+         onMouseDown={(e) => { if (e.target === e.currentTarget) onClose(); }}>
+      <div className="bg-white w-full max-w-sm mx-4 border-2 border-charcoal-900 p-6">
         <p className="font-semibold text-charcoal-900 mb-1">Разблокировать время?</p>
         <p className="text-sm text-charcoal-500 mb-4">{slot.time}{slot.comment ? ` · ${slot.comment}` : ''}</p>
         <div className="flex gap-2">
@@ -545,13 +547,10 @@ export default function CalendarPage() {
   const [blockModal, setBlockModal] = useState(null);
   const [unblockSlot, setUnblockSlot] = useState(null);
   const [nowTime, setNowTime]   = useState('00:00');
-  const [token, setToken]       = useState('');
   const cursorRef = useRef(cursor);
   cursorRef.current = cursor;
 
   useEffect(() => {
-    const t = localStorage.getItem('admin_token') || '';
-    setToken(t);
     const tick = () => {
       const n = new Date();
       setNowTime(`${pad(n.getHours())}:${pad(n.getMinutes())}`);
@@ -563,11 +562,10 @@ export default function CalendarPage() {
 
   /* ── pending strip ── */
   const fetchPending = useCallback(async () => {
-    if (!token) return;
-    const res  = await fetch('/api/appointments?status=PENDING&limit=50', { headers: { Authorization: `Bearer ${token}` } });
+    const res  = await fetch('/api/appointments?status=PENDING&limit=50');
     const data = await res.json();
     setPending(data.appointments || []);
-  }, [token]);
+  }, []);
 
   useEffect(() => { fetchPending(); }, [fetchPending]);
   useEffect(() => {
@@ -577,26 +575,23 @@ export default function CalendarPage() {
 
   /* ── fetch day data (masters + appointments + blocked slots) ── */
   const fetchDay = useCallback(async (date, silent = false) => {
-    if (!token) return;
     if (!silent) setLoading(true);
-    const res  = await fetch(`/api/admin/today?date=${date}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res  = await fetch(`/api/admin/today?date=${date}`);
     const data = await res.json();
     setDayData(data);
     setLoading(false);
-  }, [token]);
+  }, []);
 
   /* ── fetch week/month appointments ── */
   const fetchRange = useCallback(async (from, to) => {
-    if (!token) return;
     setLoading(true);
-    const res  = await fetch(`/api/admin/calendar?from=${from}&to=${to}`, { headers: { Authorization: `Bearer ${token}` } });
+    const res  = await fetch(`/api/admin/calendar?from=${from}&to=${to}`);
     const data = await res.json();
     setAppts(data.appointments || []);
     setLoading(false);
-  }, [token]);
+  }, []);
 
   useEffect(() => {
-    if (!token) return;
     if (view === 'day') {
       fetchDay(toDateStr(cursor));
     } else if (view === 'week') {
@@ -607,7 +602,7 @@ export default function CalendarPage() {
       const last  = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0);
       fetchRange(toDateStr(first), toDateStr(last));
     }
-  }, [view, cursor, token, fetchDay, fetchRange]);
+  }, [view, cursor, fetchDay, fetchRange]);
 
   /* ── poll day view every 60s ── */
   useEffect(() => {
@@ -640,7 +635,7 @@ export default function CalendarPage() {
   async function confirmPending(id) {
     await fetch(`/api/appointments/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'CONFIRMED' }),
     });
     fetchPending();
@@ -650,7 +645,7 @@ export default function CalendarPage() {
   async function cancelPending(id) {
     await fetch(`/api/appointments/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ status: 'CANCELLED' }),
     });
     fetchPending();
@@ -801,7 +796,6 @@ export default function CalendarPage() {
       {selectedAppt && (
         <AppointmentModal
           appt={selectedAppt}
-          token={token}
           onClose={() => setSelAppt(null)}
           onStatusChange={handleStatusChange}
           onPaymentDone={handlePaymentDone}
@@ -810,7 +804,6 @@ export default function CalendarPage() {
       {blockModal && (
         <BlockModal
           data={blockModal}
-          token={token}
           onClose={() => setBlockModal(null)}
           onDone={() => fetchDay(dateStr, true)}
         />
@@ -818,7 +811,6 @@ export default function CalendarPage() {
       {unblockSlot && (
         <UnblockModal
           slot={unblockSlot}
-          token={token}
           onClose={() => setUnblockSlot(null)}
           onDone={() => fetchDay(dateStr, true)}
         />

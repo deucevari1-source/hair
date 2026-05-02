@@ -1,15 +1,18 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import prisma from '@/lib/prisma';
 
-export default function MastersSection() {
-  const [masters, setMasters] = useState([]);
-
-  useEffect(() => {
-    fetch('/api/masters').then((r) => r.json()).then((d) => setMasters(d.masters || [])).catch(() => {});
-  }, []);
+export default async function MastersSection() {
+  let masters = [];
+  try {
+    masters = await prisma.master.findMany({
+      where: { isActive: true },
+      orderBy: { sortOrder: 'asc' },
+      select: { id: true, name: true, role: true, bio: true },
+    });
+  } catch (e) {
+    console.error('MastersSection prisma fetch failed:', e);
+  }
 
   return (
     <section className="section-padding py-20 md:py-28 border-t border-cream-200 bg-charcoal-900">
@@ -40,14 +43,11 @@ export default function MastersSection() {
                 </Link>
               </div>
             </div>
-          )) : [1, 2, 3].map((i) => (
-            <div key={i} className="bg-charcoal-900 p-8 animate-pulse">
-              <div className="w-16 h-16 bg-charcoal-800 mb-6" />
-              <div className="h-5 bg-charcoal-800 rounded w-36 mb-2" />
-              <div className="h-3 bg-charcoal-800 rounded w-24 mb-3" />
-              <div className="h-4 bg-charcoal-800 rounded w-48" />
+          )) : (
+            <div className="col-span-full p-12 text-center">
+              <p className="text-sm text-charcoal-500">Информация о мастерах скоро появится</p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </section>

@@ -21,11 +21,6 @@ export default function ClientsPage() {
   const [search, setSearch]     = useState('');
   const [debouncedSearch, setDebounced] = useState('');
   const [loading, setLoading]   = useState(false);
-  const [token, setToken]       = useState('');
-
-  useEffect(() => {
-    setToken(localStorage.getItem('admin_token') || '');
-  }, []);
 
   // Debounce search
   useEffect(() => {
@@ -34,14 +29,11 @@ export default function ClientsPage() {
   }, [search]);
 
   const fetchClients = useCallback(async () => {
-    if (!token) return;
     setLoading(true);
     try {
       const params = new URLSearchParams({ page, limit: 30 });
       if (debouncedSearch) params.set('search', debouncedSearch);
-      const res = await fetch(`/api/admin/clients?${params}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`/api/admin/clients?${params}`);
       const data = await res.json();
       setClients(data.clients || []);
       setTotal(data.total || 0);
@@ -49,7 +41,7 @@ export default function ClientsPage() {
     } finally {
       setLoading(false);
     }
-  }, [token, page, debouncedSearch]);
+  }, [page, debouncedSearch]);
 
   useEffect(() => { fetchClients(); }, [fetchClients]);
   useEffect(() => { setPage(1); }, [debouncedSearch]);

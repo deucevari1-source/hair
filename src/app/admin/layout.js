@@ -5,12 +5,14 @@ import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import {
   LayoutDashboard, Calendar, CalendarDays, Users, Scissors, ShoppingBag,
-  GraduationCap, TrendingUp, LogOut, Menu, X, ChevronRight, Lock,
+  GraduationCap, TrendingUp, LogOut, Menu, X, ChevronRight, Lock, MessageSquare,
 } from 'lucide-react';
 
-// Финансы доступны по дополнительному паролю. Эту функцию можно отключить. Сейчас пароль 1234
-const FINANCE_PASSWORD = '1234';
-const FINANCE_PASSWORD_ENABLED = true;
+// Финансовый «пароль» был косметическим (хранился в JS бандле, легко обходился).
+// Если нужна реальная защита раздела — реализовать серверный gate с env-переменной
+// и httpOnly cookie. Сейчас доступ к /admin/finance защищён только обычным admin-токеном.
+const FINANCE_PASSWORD_ENABLED = false;
+const FINANCE_PASSWORD = ''; // unused while gate disabled
 
 const AuthContext = createContext(null);
 export const useAuth = () => useContext(AuthContext);
@@ -19,6 +21,7 @@ const menuItems = [
   { href: '/admin',              label: 'Дашборд',           icon: LayoutDashboard },
   { href: '/admin/calendar',     label: 'Журнал записей',    icon: CalendarDays },
   { href: '/admin/clients',      label: 'Клиенты',           icon: Users },
+  { href: '/admin/messages',     label: 'Сообщения',         icon: MessageSquare, badge: true },
   { href: '/admin/finance',      label: 'Финансы',           icon: TrendingUp },
   { href: '/admin/masters',      label: 'Мастера',           icon: Users },
   { href: '/admin/services',     label: 'Услуги',            icon: Scissors },
@@ -34,36 +37,30 @@ export default function AdminLayout({ children }) {
   const [financeInput, setFinanceInput] = useState('');
   const [financeError, setFinanceError] = useState(false);
   const [financeUnlocked, setFinanceUnlocked] = useState(false);
+  const [unreadMessages, setUnreadMessages] = useState(0);
   const financeInputRef = useRef(null);
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    const token = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
-    if (!token && pathname !== '/admin/login') {
-      router.push('/admin/login');
-      setLoading(false);
-      return;
-    }
-    if (!token) { setLoading(false); return; }
+    if (admin) { setLoading(false); return; }
+    if (pathname === '/admin/login') { setLoading(false); return; }
 
-    fetch('/api/auth/me', {
-      headers: { Authorization: `Bearer ${token}` },
-    })
+    fetch('/api/auth/me')
       .then((r) => {
         if (!r.ok) throw new Error('Unauthorized');
         return r.json();
       })
       .then((data) => { setAdmin(data.admin); setLoading(false); })
       .catch(() => {
-        localStorage.removeItem('admin_token');
         if (pathname !== '/admin/login') router.push('/admin/login');
         setLoading(false);
       });
-  }, [pathname, router]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pathname]);
 
-  const logout = () => {
-    localStorage.removeItem('admin_token');
+  const logout = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
     setAdmin(null);
     router.push('/admin/login');
   };
@@ -91,16 +88,40 @@ export default function AdminLayout({ children }) {
   };
 
   const authFetch = async (url, options = {}) => {
-    const token = localStorage.getItem('admin_token');
     return fetch(url, {
       ...options,
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
         ...options.headers,
       },
     });
   };
+
+  // Poll unread messages counter every 60s while admin is logged in.
+  // Skip when tab is hidden to save battery + bandwidth.
+  useEffect(() => {
+    if (!admin) return;
+    let cancelled = false;
+    const fetchCount = async () => {
+      if (document.visibilityState !== 'visible') return;
+      try {
+        const res = await authFetch('/api/admin/prompts/unread-count');
+        if (!res.ok) return;
+        const data = await res.json();
+        if (!cancelled) setUnreadMessages(data.count || 0);
+      } catch {}
+    };
+    fetchCount();
+    const id = setInterval(fetchCount, 60000);
+    const onVisible = () => { if (document.visibilityState === 'visible') fetchCount(); };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(id);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [admin, pathname]);
 
   if (pathname === '/admin/login') {
     return <AuthContext.Provider value={{ admin, authFetch, logout }}>{children}</AuthContext.Provider>;
@@ -122,7 +143,7 @@ export default function AdminLayout({ children }) {
         {/* Sidebar overlay on mobile */}
         {sidebarOpen && (
           <div className="fixed inset-0 z-40 bg-black/30 lg:hidden"
-               onClick={() => setSidebarOpen(false)} />
+               onMouseDown={() => setSidebarOpen(false)} />
         )}
 
         {/* Sidebar */}
@@ -157,6 +178,11 @@ export default function AdminLayout({ children }) {
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${isActive ? 'bg-charcoal-900 text-white' : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'}`}>
                     <Icon size={18} />
                     <span className="flex-1">{item.label}</span>
+                    {item.badge && unreadMessages > 0 && (
+                      <span className={`text-[10px] font-semibold px-1.5 min-w-[1.25rem] h-5 flex items-center justify-center rounded-full ${isActive ? 'bg-white text-charcoal-900' : 'bg-red-500 text-white'}`}>
+                        {unreadMessages}
+                      </span>
+                    )}
                     {isFinance && FINANCE_PASSWORD_ENABLED && !financeUnlocked && (
                       <Lock size={13} className="opacity-40 shrink-0" />
                     )}

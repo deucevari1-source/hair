@@ -85,15 +85,16 @@ model MasterService {
 }
 
 model Client {
-  id           String        @id @default(cuid())
+  id           String         @id @default(cuid())
   name         String
-  phone        String        @unique
+  phone        String         @unique
   email        String?
-  notes        String?       // master/admin notes about client
-  preferences  String?       // hair preferences, allergies, etc.
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  notes        String?        // master/admin notes about client
+  preferences  String?        // hair preferences, allergies, etc.
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
   appointments Appointment[]
+  prompts      ClientPrompt[]
 }
 
 model Appointment {
@@ -115,6 +116,12 @@ model Appointment {
   telegramNotified  Boolean           @default(false)
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
+
+  @@index([date])
+  @@index([status])
+  @@index([clientId])
+  @@index([masterId, date])
+  @@index([masterId, status])
 }
 
 enum AppointmentStatus {
@@ -139,6 +146,8 @@ model Payment {
   note          String?
   paidAt        DateTime      @default(now())
   createdAt     DateTime      @default(now())
+
+  @@index([paidAt])
 }
 
 model BlockedSlot {
@@ -151,6 +160,7 @@ model BlockedSlot {
   createdAt DateTime @default(now())
 
   @@unique([masterId, date, time])
+  @@index([date])
 }
 
 model Product {
@@ -191,6 +201,48 @@ model CourseEnrollment {
   courseId   String
   course    Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
+}
+
+enum PromptStatus {
+  PENDING
+  ANSWERED
+  EXPIRED
+  DISMISSED
+}
+
+enum PromptSource {
+  SYSTEM
+  ADMIN
+}
+
+model ClientPrompt {
+  id             String       @id @default(cuid())
+  clientId       String
+  client         Client       @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  question       String
+  options        Json         // [{ label, action: "BOOK" | "ACK", payload? }]
+  response       String?      // selected option label
+  responsePayload Json?       // payload of chosen option (for analytics / re-routing)
+  status         PromptStatus @default(PENDING)
+  source         PromptSource
+  appointmentId  String?      // soft link for SYSTEM repeat-booking prompts
+  templateId     String?      // soft link if created from template
+  expiresAt      DateTime
+  answeredAt     DateTime?
+  adminReadAt    DateTime?    // when admin viewed the response
+  createdAt      DateTime     @default(now())
+
+  @@index([clientId, status])
+  @@index([appointmentId])
+}
+
+model PromptTemplate {
+  id        String   @id @default(cuid())
+  name      String
+  question  String
+  options   Json     // [{ label, action, payload? }]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 model SalonSettings {

@@ -1,58 +1,46 @@
-'use client';
-
-import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Clock, ArrowRight } from 'lucide-react';
+import prisma from '@/lib/prisma';
 
-export default function ServicesPage() {
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
+export const metadata = {
+  title: 'Услуги — Hair Atelier',
+  description: 'Стрижки, окрашивание, уход — полный каталог услуг салона Hair Atelier с актуальными ценами и длительностью.',
+};
 
-  useEffect(() => {
-    fetch('/api/services')
-      .then((r) => r.json())
-      .then((data) => {
-        setCategories(data.categories || []);
-        setLoading(false);
-      })
-      .catch(() => setLoading(false));
-  }, []);
+function formatPrice(from) {
+  return `${(from / 100).toLocaleString('ru-RU')} BYN`;
+}
 
-  function formatPrice(from) {
-    return `${(from / 100).toLocaleString('ru-RU')} BYN`;
+export default async function ServicesPage() {
+  let categories = [];
+  try {
+    categories = await prisma.serviceCategory.findMany({
+      orderBy: { sortOrder: 'asc' },
+      include: {
+        services: {
+          where: { isActive: true },
+          orderBy: { sortOrder: 'asc' },
+        },
+      },
+    });
+  } catch (e) {
+    console.error('ServicesPage prisma fetch failed:', e);
   }
 
   return (
     <div className="section-padding py-10 md:py-16">
       <div className="max-w-4xl mx-auto">
-        {/* Header */}
         <div className="mb-10 md:mb-14">
           <span className="text-xs tracking-[0.2em] uppercase text-gold-500 font-body block mb-3">
             Каталог
           </span>
           <h1 className="heading-lg text-charcoal-900 mb-4">Наши услуги</h1>
           <p className="body-text max-w-lg">
-            Полный спектр услуг для ваших волос — от классической стрижки 
+            Полный спектр услуг для ваших волос — от классической стрижки
             до сложного окрашивания и восстанавливающего ухода.
           </p>
         </div>
 
-        {/* Loading */}
-        {loading && (
-          <div className="space-y-8">
-            {[1, 2].map((i) => (
-              <div key={i} className="animate-pulse">
-                <div className="h-6 bg-cream-200 rounded w-40 mb-4" />
-                <div className="space-y-3">
-                  <div className="h-20 bg-cream-100 rounded" />
-                  <div className="h-20 bg-cream-100 rounded" />
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* Categories */}
         <div className="space-y-10 md:space-y-14">
           {categories.map((cat) => (
             <div key={cat.id}>
@@ -86,7 +74,7 @@ export default function ServicesPage() {
                         {formatPrice(service.priceFrom)}
                       </div>
                       <Link href="/booking"
-                        className="inline-flex items-center gap-1 text-xs text-gold-600 mt-2 
+                        className="inline-flex items-center gap-1 text-xs text-gold-600 mt-2
                                    hover:text-gold-700 transition-colors">
                         Записаться <ArrowRight size={10} />
                       </Link>
@@ -98,17 +86,14 @@ export default function ServicesPage() {
           ))}
         </div>
 
-        {/* CTA */}
-        {!loading && (
-          <div className="mt-14 text-center">
-            <p className="text-sm text-charcoal-500 mb-4">
-              Не нашли нужную услугу? Свяжитесь с нами!
-            </p>
-            <Link href="/booking" className="btn-primary">
-              Записаться <ArrowRight size={16} className="ml-2" />
-            </Link>
-          </div>
-        )}
+        <div className="mt-14 text-center">
+          <p className="text-sm text-charcoal-500 mb-4">
+            Не нашли нужную услугу? Свяжитесь с нами!
+          </p>
+          <Link href="/booking" className="btn-primary">
+            Записаться <ArrowRight size={16} className="ml-2" />
+          </Link>
+        </div>
       </div>
     </div>
   );

@@ -31,12 +31,6 @@ export default function FinancePage() {
   const [preset, setPreset]   = useState(1); // 7 days default
   const [from, setFrom]       = useState('');
   const [to, setTo]           = useState('');
-  const [token, setToken]     = useState('');
-
-  useEffect(() => {
-    setToken(localStorage.getItem('admin_token') || '');
-  }, []);
-
   // On preset change set from/to
   useEffect(() => {
     const now = new Date();
@@ -48,18 +42,16 @@ export default function FinancePage() {
   }, [preset]);
 
   const fetchReport = useCallback(async () => {
-    if (!token || !from || !to) return;
+    if (!from || !to) return;
     setLoading(true);
     try {
-      const res = await fetch(`/api/admin/finance/report?from=${from}&to=${to}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await fetch(`/api/admin/finance/report?from=${from}&to=${to}`);
       const d = await res.json();
       setData(d);
     } finally {
       setLoading(false);
     }
-  }, [token, from, to]);
+  }, [from, to]);
 
   useEffect(() => { fetchReport(); }, [fetchReport]);
 

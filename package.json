@@ -16,10 +16,10 @@
   "dependencies": {
     "@prisma/client": "^5.14.0",
     "bcryptjs": "^2.4.3",
-    "framer-motion": "^11.2.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.383.0",
     "next": "^16.2.3",
+    "petrovich": "^0.2.1",
     "prisma": "^5.14.0",
     "react": "^18.3.0",
     "react-dom": "^18.3.0"

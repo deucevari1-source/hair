@@ -31,7 +31,7 @@ export default function AdminLoginPage() {
         return;
       }
 
-      localStorage.setItem('admin_token', data.token);
+      // Token is set as httpOnly cookie by the server.
       router.push('/admin');
     } catch {
       setError('Ошибка сети');
@@ -83,9 +83,6 @@ export default function AdminLoginPage() {
           </form>
         </div>
 
-        <p className="text-center text-xs text-charcoal-400 mt-4">
-          По умолчанию: admin@hairatelier.com / admin123
-        </p>
       </div>
     </div>
   );

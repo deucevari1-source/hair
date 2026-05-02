@@ -27,29 +27,23 @@ export default function ClientDetailPage({ params }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving]   = useState(false);
   const [form, setForm]       = useState({ notes: '', preferences: '' });
-  const [token, setToken]     = useState('');
 
   useEffect(() => {
-    setToken(localStorage.getItem('admin_token') || '');
-  }, []);
-
-  useEffect(() => {
-    if (!token) return;
     setLoading(true);
-    fetch(`/api/admin/clients/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+    fetch(`/api/admin/clients/${id}`)
       .then((r) => r.json())
       .then((d) => {
         setClient(d.client);
         setForm({ notes: d.client.notes || '', preferences: d.client.preferences || '' });
       })
       .finally(() => setLoading(false));
-  }, [id, token]);
+  }, [id]);
 
   async function save() {
     setSaving(true);
     const res = await fetch(`/api/admin/clients/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(form),
     });
     const data = await res.json();

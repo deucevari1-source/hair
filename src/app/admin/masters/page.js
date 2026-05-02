@@ -343,9 +343,9 @@ export default function MastersPage() {
 
       {/* Edit Modal */}
       {editing !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={close}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative bg-white rounded-xl w-full max-w-md p-6" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/30" onMouseDown={close} />
+          <div className="relative bg-white rounded-xl w-full max-w-md p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold text-gray-900">
                 {editing === 'new' ? 'Новый мастер' : 'Редактирование'}
@@ -416,9 +416,9 @@ export default function MastersPage() {
 
       {/* Services Modal */}
       {servicesMaster && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setServicesMaster(null)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative bg-white rounded-xl w-full max-w-md p-6 max-h-[80vh] flex flex-col" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/30" onMouseDown={() => setServicesMaster(null)} />
+          <div className="relative bg-white rounded-xl w-full max-w-md p-6 max-h-[80vh] flex flex-col">
             <div className="flex items-center justify-between mb-5 shrink-0">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">Услуги мастера</h2>
@@ -491,9 +491,9 @@ export default function MastersPage() {
 
       {/* Schedule Modal */}
       {scheduleMaster && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 p-4" onClick={() => setScheduleMaster(null)}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative bg-white rounded-xl w-full max-w-sm p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-start justify-center pt-10 p-4">
+          <div className="absolute inset-0 bg-black/30" onMouseDown={() => setScheduleMaster(null)} />
+          <div className="relative bg-white rounded-xl w-full max-w-sm p-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-5">
               <div>
                 <h2 className="text-lg font-semibold text-gray-900">График работы</h2>

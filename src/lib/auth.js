@@ -1,7 +1,10 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 
-const JWT_SECRET = process.env.JWT_SECRET || 'fallback-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  throw new Error('JWT_SECRET env var is required and must be at least 32 chars long');
+}
 
 export const CLIENT_COOKIE_NAME = 'client_token';
 export const CLIENT_COOKIE_MAX_AGE = 60 * 60 * 24 * 365;

@@ -1,7 +1,7 @@
-'use client';
-
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
+import PromptStack from './prompt-stack';
+import NextAppointment from './next-appointment';
 
 function GeometricFrame() {
   return (
@@ -69,7 +69,7 @@ function AnonymousHero() {
   );
 }
 
-function PersonalizedHero({ name }) {
+function PersonalizedHero({ name, initialPrompts, nextAppointment }) {
   const firstName = name.split(' ')[0] || name;
   return (
     <div>
@@ -89,22 +89,32 @@ function PersonalizedHero({ name }) {
         HAIR ATELIER
       </p>
 
-      <div className="flex items-center gap-4 mt-10 hero-rise hero-rise-d3">
-        <div className="h-px w-12 bg-charcoal-900" />
-        <p className="text-sm text-charcoal-500 font-body leading-relaxed max-w-xs">
-          Ваш личный кабинет — записи, история визитов и любимые мастера.
-        </p>
+      <div className="mt-10 hero-rise hero-rise-d3">
+        {nextAppointment ? (
+          <NextAppointment appointment={nextAppointment} />
+        ) : (
+          <div className="flex items-center gap-4">
+            <div className="h-px w-12 bg-charcoal-900" />
+            <p className="text-sm text-charcoal-500 font-body leading-relaxed max-w-xs">
+              Активных записей пока нет — выберите удобное время и мастера.
+            </p>
+          </div>
+        )}
       </div>
+
+      <PromptStack initialPrompts={initialPrompts} />
     </div>
   );
 }
 
-export default function HeroSection({ client }) {
+export default function HeroSection({ client, initialPrompts = [], nextAppointment = null }) {
   return (
     <section className="relative min-h-[100svh] flex items-center overflow-hidden bg-white bg-grid">
       <div className="relative z-10 section-padding w-full max-w-7xl mx-auto py-16 md:py-0">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 md:gap-20 items-center">
-          {client?.name ? <PersonalizedHero name={client.name} /> : <AnonymousHero />}
+          {client?.name
+            ? <PersonalizedHero name={client.name} initialPrompts={initialPrompts} nextAppointment={nextAppointment} />
+            : <AnonymousHero />}
           <GeometricFrame />
         </div>
       </div>

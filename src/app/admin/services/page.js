@@ -142,9 +142,9 @@ export default function ServicesPage() {
 
       {/* Edit Modal */}
       {editing !== null && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={close}>
-          <div className="absolute inset-0 bg-black/30" />
-          <div className="relative bg-white rounded-xl w-full max-w-md p-6 max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/30" onMouseDown={close} />
+          <div className="relative bg-white rounded-xl w-full max-w-md p-6 max-h-[85vh] overflow-y-auto">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-semibold">{editing === 'new' ? 'Новая услуга' : 'Редактирование'}</h2>
               <button onClick={close} className="text-gray-400 hover:text-gray-600"><X size={20} /></button>

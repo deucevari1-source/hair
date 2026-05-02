@@ -21,7 +21,19 @@
       "Bash(node prisma/add-appointments.js)",
       "Bash(node prisma/fix-prices.js)",
       "Bash(ls c:/projects/hair-atelier/tg_bot_hair/.env*)",
-      "Bash(ssh root@localhost \"cat /home/gitlab-runner/ghuauld-project/docker-compose.yml\")"
+      "Bash(ssh root@localhost \"cat /home/gitlab-runner/ghuauld-project/docker-compose.yml\")",
+      "Bash(Get-ChildItem -Path \"c:\\\\projects\\\\hair-atelier\" -Force)",
+      "Bash(Select-Object Name)",
+      "Bash(git add *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git tag *)",
+      "Bash(PGPASSWORD=hairatelier123 psql -h localhost -p 5433 -U hairatelier -d hair_atelier -c \"SELECT id, name, phone, \\\\\"createdAt\\\\\" FROM \\\\\"Client\\\\\" ORDER BY \\\\\"createdAt\\\\\" DESC LIMIT 10;\")",
+      "Bash(node scripts/debug-db.js)",
+      "Bash(node -e \"console.log\\(require\\('crypto'\\).randomBytes\\(48\\).toString\\('base64url'\\)\\)\")",
+      "Read(//c/Users/deuce/.claude/projects/c--projects-hair-atelier/**)",
+      "Bash(node -e \"const p = require\\('petrovich'\\); console.log\\(JSON.stringify\\(p\\({first:'Кирилл',last:'Круглов',gender:'male'},'dative'\\)\\)\\); console.log\\(JSON.stringify\\(p\\({first:'Анна',last:'Иванова',gender:'female'},'dative'\\)\\)\\); console.log\\(JSON.stringify\\(p\\({first:'Анна'},'dative'\\)\\)\\); console.log\\('detectGender:', typeof p.detect_gender, typeof p.detectGender, Object.keys\\(p\\)\\);\")",
+      "Bash(node -e \"const {declineToDative} = require\\('./src/lib/prompts.js'\\); ['Кирилл Круглов','Анна Иванова','Дмитрий','Ольга','Илья Петров','Никита','Сергей Михайлович Иванов','Ирина Ковалевская','Константин','назгуль темирбаева'].forEach\\(n => console.log\\(n, '→', declineToDative\\(n\\)\\)\\);\")",
+      "Bash(git check-ignore *)"
     ],
     "additionalDirectories": [
       "c:\\projects\\hair-atelier\\src\\app\\api\\admin\\blocked-slots"

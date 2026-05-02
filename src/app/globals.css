@@ -108,6 +108,16 @@
   }
 }
 
+/* iOS Safari auto-zooms on focus when input font-size < 16px.
+   Force 16px on touch devices only — desktop keeps original sizing. */
+@media (hover: none) and (pointer: coarse) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
+
 @keyframes hero-rise {
   from { opacity: 0; transform: translateY(18px); filter: blur(8px); }
   to   { opacity: 1; transform: translateY(0);    filter: blur(0); }

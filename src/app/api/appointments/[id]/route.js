@@ -12,9 +12,17 @@ export async function PATCH(request, { params }) {
   try {
     const body = await request.json();
 
+    // Whitelist editable fields — never trust client to set clientId/payment links/etc.
+    const ALLOWED = ['status', 'comment', 'date', 'time', 'masterId', 'serviceId'];
+    const data = {};
+    for (const key of ALLOWED) {
+      if (body[key] !== undefined) data[key] = body[key];
+    }
+    if (data.date) data.date = new Date(data.date);
+
     const appointment = await prisma.appointment.update({
       where: { id },
-      data: body,
+      data,
       include: { service: true, master: true },
     });
 

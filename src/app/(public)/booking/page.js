@@ -18,13 +18,14 @@ function maskPhone(raw) {
 function BookingPage() {
   const searchParams = useSearchParams();
   const preselectedMasterId = searchParams.get('master');
+  const preselectedServiceId = searchParams.get('service');
 
   const [form, setForm] = useState({
     clientName: '',
     clientPhone: '+375',
     date: '',
     time: '',
-    serviceId: '',
+    serviceId: preselectedServiceId || '',
     masterId: preselectedMasterId || '',
     comment: '',
   });
@@ -37,7 +38,9 @@ function BookingPage() {
   const [error, setError] = useState('');
 
   // panel: 0=masters, 1=services, 2=datetime, 3=contacts
-  const [panel, setPanel] = useState(preselectedMasterId ? 1 : 0);
+  const [panel, setPanel] = useState(
+    preselectedMasterId && preselectedServiceId ? 2 : preselectedMasterId ? 1 : 0
+  );
 
   useEffect(() => {
     fetch('/api/masters').then((r) => r.json()).then((data) => setMasters(data.masters || []));
